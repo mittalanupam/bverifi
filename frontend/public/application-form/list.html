@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+
+    <!-- Login Container -->
+    <div id="login-container" class="hidden max-w-md mx-auto mt-20 bg-white shadow-2xl rounded-2xl p-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center">Agent Login</h1>
+        <p class="text-center text-gray-500 mb-8">Login to view your applications</p>
+        
+        <div id="login-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+        
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="mb-4">
+                <label class="block font-semibold text-gray-700 mb-2">Username</label>
+                <input type="text" id="username" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter username">
+            </div>
+            <div class="mb-6">
+                <label class="block font-semibold text-gray-700 mb-2">Password</label>
+                <input type="password" id="password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter password">
+            </div>
+            <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition">
+                Login
+            </button>
+        </form>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="hidden max-w-6xl mx-auto">
+        
+        <!-- Header -->
+        <div class="bg-white shadow-lg rounded-2xl p-6 mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-900">My Applications</h1>
+                    <p class="text-gray-500">Logged in as: <span id="logged-in-user" class="font-semibold text-blue-600"></span></p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="form.html" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Start New Application
+                    </a>
+                    <button onclick="handleLogout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow text-center">
+                <p class="text-3xl font-bold text-blue-600" id="stat-total">0</p>
+                <p class="text-gray-600 text-sm">Total</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow text-center">
+                <p class="text-3xl font-bold text-gray-500" id="stat-draft">0</p>
+                <p class="text-gray-600 text-sm">Draft</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow text-center">
+                <p class="text-3xl font-bold text-green-600" id="stat-positive">0</p>
+                <p class="text-gray-600 text-sm">Positive</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow text-center">
+                <p class="text-3xl font-bold text-red-600" id="stat-negative">0</p>
+                <p class="text-gray-600 text-sm">Negative</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow text-center">
+                <p class="text-3xl font-bold text-yellow-600" id="stat-refer">0</p>
+                <p class="text-gray-600 text-sm">Refer</p>
+            </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+            <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Search by name or file no..." class="w-full sm:w-64 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Sort by:</span>
+                    <select id="sort-select" onchange="sortApplications()" class="p-2 border border-gray-300 rounded-lg bg-white">
+                        <option value="created_desc">Created (Newest First)</option>
+                        <option value="created_asc">Created (Oldest First)</option>
+                        <option value="name_asc">Name (A-Z)</option>
+                        <option value="name_desc">Name (Z-A)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Applicant</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">File No.</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">App Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Result</th>
+                            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applications-table" class="divide-y divide-gray-200">
+                        <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden p-12 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">No Applications Yet</h3>
+                <p class="text-gray-500 mb-4">Start by creating your first application</p>
+                <a href="form.html" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                    Start New Application
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Modal -->
+    <div id="view-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800">Application Details</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="modal-content" class="p-6">
+                <!-- Content will be injected here -->
+            </div>
+            <div class="sticky bottom-0 bg-gray-50 p-4 border-t flex justify-end gap-3">
+                <button onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">
+                    Close
+                </button>
+                <a id="modal-edit-btn" href="#" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                    Edit Application
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        let applications = [];
+        let currentAppId = null;
+
+        // Token Management
+        function getToken() { return localStorage.getItem('authToken'); }
+        function setToken(token) { localStorage.setItem('authToken', token); }
+        function clearToken() { localStorage.removeItem('authToken'); localStorage.removeItem('currentUser'); }
+        function setCurrentUser(user) { localStorage.setItem('currentUser', JSON.stringify(user)); }
+        function getCurrentUser() { const u = localStorage.getItem('currentUser'); return u ? JSON.parse(u) : null; }
+
+        // Login
+        async function handleLogin(event) {
+            event.preventDefault();
+            const loginBtn = document.getElementById('login-btn');
+            const errorDiv = document.getElementById('login-error');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            loginBtn.textContent = 'Logging in...';
+            loginBtn.disabled = true;
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setToken(data.token);
+                    setCurrentUser(data.user);
+                    showMainContent();
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loginBtn.textContent = 'Login';
+                loginBtn.disabled = false;
+            }
+        }
+
+        async function handleLogout() {
+            try { await fetch(`${API_URL}/auth/logout/`, { method: 'POST', headers: { 'Authorization': `Token ${getToken()}` } }); } catch {}
+            clearToken();
+            location.reload();
+        }
+
+        function showMainContent() {
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            const user = getCurrentUser();
+            if (user) document.getElementById('logged-in-user').textContent = user.username;
+            loadApplications();
+        }
+
+        // Load Applications
+        async function loadApplications() {
+            try {
+                const response = await fetch(`${API_URL}/applications/`, {
+                    headers: { 'Authorization': `Token ${getToken()}` }
+                });
+                if (response.ok) {
+                    applications = await response.json();
+                    sortApplications(); // This will also render the table
+                    updateStats();
+                } else if (response.status === 401) {
+                    clearToken();
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error loading applications:', error);
+                document.getElementById('applications-table').innerHTML = 
+                    '<tr><td colspan="8" class="px-4 py-8 text-center text-red-500">Error loading applications</td></tr>';
+            }
+        }
+
+        function sortApplications() {
+            const sortBy = document.getElementById('sort-select').value;
+            
+            applications.sort((a, b) => {
+                switch (sortBy) {
+                    case 'created_desc':
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    case 'created_asc':
+                        return new Date(a.created_at) - new Date(b.created_at);
+                    case 'name_asc':
+                        return a.applicant_name.localeCompare(b.applicant_name);
+                    case 'name_desc':
+                        return b.applicant_name.localeCompare(a.applicant_name);
+                    default:
+                        return new Date(b.created_at) - new Date(a.created_at);
+                }
+            });
+            
+            renderTable();
+        }
+
+        function getAppStatus(app) {
+            // An application is "Submitted" if it has a conclusion with overall_status
+            if (app.overall_status) {
+                return { label: 'Submitted', class: 'bg-green-100 text-green-700' };
+            }
+            return { label: 'Draft', class: 'bg-gray-100 text-gray-600' };
+        }
+
+        function getResultBadge(status) {
+            if (!status) return '<span class="text-gray-400">-</span>';
+            if (status === 'Positive') return '<span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Positive</span>';
+            if (status === 'Negative') return '<span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Negative</span>';
+            return '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Refer</span>';
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('applications-table');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (applications.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            tbody.innerHTML = applications.map(app => {
+                const appStatus = getAppStatus(app);
+                return `
+                <tr class="hover:bg-gray-50 app-row" data-name="${app.applicant_name.toLowerCase()}" data-file="${app.file_no.toLowerCase()}">
+                    <td class="px-4 py-4 text-sm text-gray-500">#${app.id}</td>
+                    <td class="px-4 py-4">
+                        <div class="font-medium text-gray-900">${app.applicant_name}</div>
+                        <div class="text-xs text-gray-500">${app.visit_date}</div>
+                    </td>
+                    <td class="px-4 py-4 text-sm font-mono text-gray-600">${app.file_no}</td>
+                    <td class="px-4 py-4 text-sm text-gray-600">${app.telephone}</td>
+                    <td class="px-4 py-4 text-sm text-gray-500">${formatDate(app.created_at)}</td>
+                    <td class="px-4 py-4">
+                        <span class="px-2 py-1 ${appStatus.class} rounded-full text-xs font-medium">${appStatus.label}</span>
+                    </td>
+                    <td class="px-4 py-4">${getResultBadge(app.overall_status)}</td>
+                    <td class="px-4 py-4">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="viewApplication(${app.id})" class="text-blue-600 hover:text-blue-800 font-medium text-sm px-2 py-1 rounded hover:bg-blue-50">
+                                View
+                            </button>
+                            <a href="form.html?edit=${app.id}" class="text-green-600 hover:text-green-800 font-medium text-sm px-2 py-1 rounded hover:bg-green-50">
+                                Edit
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function updateStats() {
+            const total = applications.length;
+            const draft = applications.filter(a => !a.overall_status).length;
+            const positive = applications.filter(a => a.overall_status === 'Positive').length;
+            const negative = applications.filter(a => a.overall_status === 'Negative').length;
+            const refer = applications.filter(a => a.overall_status === 'Refer to credit').length;
+            
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-draft').textContent = draft;
+            document.getElementById('stat-positive').textContent = positive;
+            document.getElementById('stat-negative').textContent = negative;
+            document.getElementById('stat-refer').textContent = refer;
+        }
+
+        function filterTable() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            document.querySelectorAll('.app-row').forEach(row => {
+                const name = row.dataset.name;
+                const file = row.dataset.file;
+                row.style.display = (name.includes(search) || file.includes(search)) ? '' : 'none';
+            });
+        }
+
+        // View Application
+        async function viewApplication(id) {
+            currentAppId = id;
+            try {
+                const response = await fetch(`${API_URL}/applications/${id}/`, {
+                    headers: { 'Authorization': `Token ${getToken()}` }
+                });
+                if (response.ok) {
+                    const app = await response.json();
+                    showModal(app);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function showModal(app) {
+            document.getElementById('modal-edit-btn').href = `form.html?edit=${app.id}`;
+            
+            const content = document.getElementById('modal-content');
+            const appStatus = getAppStatus(app);
+            
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900">${app.applicant_name}</h3>
+                            <p class="text-gray-500">File No: ${app.file_no}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 ${appStatus.class} rounded-full text-sm font-medium">${appStatus.label}</span>
+                            ${app.conclusion ? getResultBadge(app.conclusion.overall_status) : ''}
+                        </div>
+                    </div>
+
+                    <!-- Client Info -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-blue-600 mb-3">Client Particulars</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                            <div><span class="text-gray-500">Gender:</span> <span class="font-medium">${app.gender}</span></div>
+                            <div><span class="text-gray-500">Age:</span> <span class="font-medium">${app.age}</span></div>
+                            <div><span class="text-gray-500">Phone:</span> <span class="font-medium">${app.telephone}</span></div>
+                            <div><span class="text-gray-500">Qualification:</span> <span class="font-medium">${app.qualification}</span></div>
+                            <div><span class="text-gray-500">Visit Date:</span> <span class="font-medium">${app.visit_date}</span></div>
+                            <div><span class="text-gray-500">Family:</span> <span class="font-medium">${(app.family_members || []).join(', ') || '-'}</span></div>
+                        </div>
+                        <div class="mt-3 text-sm">
+                            <span class="text-gray-500">Address:</span> <span class="font-medium">${app.residential_address}</span>
+                        </div>
+                    </div>
+
+                    ${app.business_details ? `
+                    <!-- Business Info -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-blue-600 mb-3">Business Details</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                            <div><span class="text-gray-500">Name:</span> <span class="font-medium">${app.business_details.business_name}</span></div>
+                            <div><span class="text-gray-500">Type:</span> <span class="font-medium">${app.business_details.ownership_type}</span></div>
+                            <div><span class="text-gray-500">GST:</span> <span class="font-medium">${app.business_details.gst_number}</span></div>
+                            <div><span class="text-gray-500">Location:</span> <span class="font-medium">${app.business_details.business_location}</span></div>
+                            <div><span class="text-gray-500">Turnover:</span> <span class="font-medium">${app.business_details.turnover || '-'}</span></div>
+                            <div><span class="text-gray-500">Net Income:</span> <span class="font-medium">${app.business_details.net_income || '-'}</span></div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${app.security_details ? `
+                    <!-- Security Info -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-blue-600 mb-3">Security & Loan</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                            <div><span class="text-gray-500">Property:</span> <span class="font-medium">${app.security_details.house_address}</span></div>
+                            <div><span class="text-gray-500">Area:</span> <span class="font-medium">${app.security_details.house_area} sq.ft</span></div>
+                            <div><span class="text-gray-500">Market Value:</span> <span class="font-medium">₹${app.security_details.house_market_value?.toLocaleString('en-IN')}</span></div>
+                            <div><span class="text-gray-500">Amount Required:</span> <span class="font-medium">₹${app.security_details.amount_required?.toLocaleString('en-IN')}</span></div>
+                            <div><span class="text-gray-500">End Use:</span> <span class="font-medium">${app.security_details.end_use}</span></div>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    ${app.conclusion ? `
+                    <!-- Conclusion -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-blue-600 mb-3">Conclusion</h4>
+                        <div class="text-sm space-y-2">
+                            <div><span class="text-gray-500">Observation:</span> <span class="font-medium">${app.conclusion.general_observation}</span></div>
+                            <div><span class="text-gray-500">Overall Status:</span> ${getResultBadge(app.conclusion.overall_status)}</div>
+                            ${app.conclusion.status_remark ? `<div><span class="text-gray-500">Remark:</span> <span class="font-medium">${app.conclusion.status_remark}</span></div>` : ''}
+                        </div>
+                    </div>
+                    ` : '<div class="bg-yellow-50 p-4 rounded-lg text-yellow-700 text-sm"><strong>Note:</strong> This application is still in draft. Complete all steps to submit.</div>'}
+
+                    <div class="text-xs text-gray-400 pt-4 border-t">
+                        <p>Created: ${new Date(app.created_at).toLocaleString('en-IN')}</p>
+                        <p>Last Updated: ${new Date(app.updated_at).toLocaleString('en-IN')}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('view-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('view-modal').classList.add('hidden');
+            currentAppId = null;
+        }
+
+        // Initialize
+        window.onload = function() {
+            if (getToken()) {
+                showMainContent();
+            } else {
+                document.getElementById('login-container').classList.remove('hidden');
+            }
+        };
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

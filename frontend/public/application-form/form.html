@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Flatpickr Date Picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        :root {
+            --form-bg: #ffffff;
+            --primary-blue: #2563eb;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: all 150ms ease-in-out;
+        }
+        .form-input:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 2px var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+        /* Flatpickr custom styling */
+        .flatpickr-calendar {
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .flatpickr-day.selected {
+            background: var(--primary-blue) !important;
+            border-color: var(--primary-blue) !important;
+        }
+        .flatpickr-day:hover {
+            background: #dbeafe !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Login Container -->
+    <div id="login-container" class="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center">Agent Login</h1>
+        <p class="text-center text-gray-500 mb-8">Login to start screening applications</p>
+        
+        <div id="login-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+        
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="input-group mb-4">
+                <label for="username">Username</label>
+                <input type="text" id="username" required class="form-input" placeholder="Enter username">
+            </div>
+            <div class="input-group mb-6">
+                <label for="password">Password</label>
+                <input type="password" id="password" required class="form-input" placeholder="Enter password">
+            </div>
+            <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
+                Login & Start Screening
+            </button>
+        </form>
+    </div>
+
+    <!-- Application Form Container (Hidden initially) -->
+    <div id="form-wrapper" class="hidden w-full max-w-4xl bg-white shadow-2xl rounded-2xl p-6 sm:p-10">
+        
+        <!-- Header with Logout -->
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900">Application Form</h1>
+                <p id="step-indicator" class="text-gray-500">Step 1 of 2</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-600">Logged in as: <span id="logged-in-user" class="font-semibold"></span></p>
+                <button onclick="handleLogout()" class="text-red-600 hover:text-red-800 text-sm font-medium">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="mb-6">
+            <div class="flex justify-between text-xs mb-2 font-medium text-gray-600">
+                <span id="step-label-1" class="text-blue-600">1. Client</span>
+                <span id="step-label-2" class="text-gray-400">2. Business</span>
+                <span id="step-label-3" class="text-gray-400">3. Details</span>
+                <span id="step-label-4" class="text-gray-400">4. Other Biz</span>
+                <span id="step-label-5" class="text-gray-400">5. Bank/Loan</span>
+                <span id="step-label-6" class="text-gray-400">6. Security</span>
+                <span id="step-label-7" class="text-gray-400">7. Conclusion</span>
+            </div>
+            <div class="w-full bg-blue-100 rounded-full h-2">
+                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 14.28%;"></div>
+            </div>
+        </div>
+
+        <form id="application-form" onsubmit="event.preventDefault()">
+            
+            <!-- Step 1: Client Particulars -->
+            <div id="step-1" class="step-content">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600">Client Particulars</h2>
+                <div class="step-container">
+                    <div class="input-group">
+                        <label for="applicant_name">Name of Applicant</label>
+                        <input type="text" id="applicant_name" required pattern="[A-Za-z\s]+" class="form-input" placeholder="Only alphabet allowed">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Gender</label>
+                        <div class="flex gap-6 mt-2">
+                            <label class="inline-flex items-center"><input type="radio" name="gender" value="Male" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2 text-gray-700">Male</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="gender" value="Female" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2 text-gray-700">Female</span></label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="file_no">File No.</label>
+                            <input type="text" id="file_no" required pattern="[A-Za-z0-9]+" class="form-input" placeholder="Alpha numeric">
+                        </div>
+                        <div class="input-group">
+                            <label for="allocation_date">Allocation Date</label>
+                            <input type="text" id="allocation_date" required class="form-input datepicker" placeholder="Select date">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="input-group">
+                            <label for="visit_date">Date of Visit</label>
+                            <input type="text" id="visit_date" required readonly class="form-input bg-gray-100 cursor-not-allowed">
+                        </div>
+                        <div class="input-group">
+                            <label for="dob">Date of Birth (Optional)</label>
+                            <input type="text" id="dob" class="form-input datepicker-dob" placeholder="Select date">
+                        </div>
+                        <div class="input-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" required min="18" class="form-input" placeholder="Age (min 18)">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="qualification">Qualification</label>
+                            <select id="qualification" required onchange="toggleOtherField('qualification', 'other_qualification_container')" class="form-input bg-white">
+                                <option value="">Select Qualification</option>
+                                <option value="Graduate">Graduate</option>
+                                <option value="Post-Graduate">Post-Graduate</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div id="other_qualification_container" class="input-group hidden">
+                            <label for="other_qualification">Other Qualification</label>
+                            <input type="text" id="other_qualification" class="form-input" placeholder="Enter qualification">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="prof_qualification">Professional Qualification</label>
+                            <select id="prof_qualification" required onchange="toggleOtherField('prof_qualification', 'other_prof_qualification_container')" class="form-input bg-white">
+                                <option value="">Select Professional Qualification</option>
+                                <option value="CA">CA</option>
+                                <option value="Engineer">Engineer</option>
+                                <option value="LLB">LLB</option>
+                                <option value="Architect">Architect</option>
+                                <option value="MBBS">MBBS</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div id="other_prof_qualification_container" class="input-group hidden">
+                            <label for="other_prof_qualification">Other Professional Qualification</label>
+                            <input type="text" id="other_prof_qualification" class="form-input" placeholder="Enter professional qualification">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                        <div class="input-group">
+                            <label for="telephone">Telephone No. (10 digits)</label>
+                            <input type="tel" id="telephone" required pattern="\d{10}" class="form-input" placeholder="10-digit number">
+                        </div>
+                        <div class="input-group">
+                            <label>Number belongs to</label>
+                            <div class="flex flex-wrap gap-4 mt-2">
+                                <label class="inline-flex items-center"><input type="radio" name="tel_owner" value="Applicant" required class="form-radio h-4 w-4 text-blue-600" onchange="toggleOtherField('tel_owner', 'other_tel_owner_container', 'Other')"> <span class="ml-2 text-gray-700">Applicant</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="tel_owner" value="Co Applicant" class="form-radio h-4 w-4 text-blue-600" onchange="toggleOtherField('tel_owner', 'other_tel_owner_container', 'Other')"> <span class="ml-2 text-gray-700">Co Applicant</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="tel_owner" value="Other" class="form-radio h-4 w-4 text-blue-600" onchange="toggleOtherField('tel_owner', 'other_tel_owner_container', 'Other')"> <span class="ml-2 text-gray-700">Other</span></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="other_tel_owner_container" class="input-group hidden">
+                        <label for="other_tel_owner">Owner Name</label>
+                        <input type="text" id="other_tel_owner" class="form-input" placeholder="Enter owner's name">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="residential_address">Residential Address</label>
+                        <textarea id="residential_address" required rows="3" class="form-input" placeholder="Enter full address"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Family Members (Select at least one)</label>
+                        <div class="flex flex-wrap gap-4 mt-2 bg-blue-50 p-3 rounded-lg">
+                            <label class="inline-flex items-center"><input type="checkbox" name="family_members" value="Spouse" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">Spouse</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="family_members" value="Mother" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">Mother</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="family_members" value="Father" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">Father</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="family_members" value="1 kid" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">1 Kid</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="family_members" value="2 kids" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">2 Kids</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="family_members" value="2+ kids" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">2+ Kids</span></label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Step 2: Business Details -->
+            <div id="step-2" class="step-content hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600">Business & Financial Details</h2>
+                <div class="step-container">
+                    
+                    <div class="input-group">
+                        <label for="business_name">Business Name</label>
+                        <input type="text" id="business_name" required class="form-input" placeholder="Enter business name">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="ownership_type">Ownership Type</label>
+                        <select id="ownership_type" required class="form-input bg-white">
+                            <option value="">Select Type</option>
+                            <option value="Partner">Partner</option>
+                            <option value="Proprietor">Proprietor</option>
+                            <option value="Director">Director</option>
+                            <option value="Contractual Employee">Contractual Employee</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic Owners Section -->
+                    <div class="input-group">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="!mb-0">Owner Name(s)</label>
+                            <button type="button" onclick="addOwner()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 text-sm font-medium rounded-lg">+ Add Owner</button>
+                        </div>
+                        <div id="owners_container" class="space-y-2">
+                            <div class="flex gap-2 owner-row">
+                                <input type="text" name="owner_name" required class="form-input" placeholder="Owner Name">
+                                <button type="button" onclick="removeOwner(this)" class="text-red-500 hover:text-red-700 px-2 text-xl" disabled>×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="business_address">Business Address</label>
+                            <textarea id="business_address" required rows="2" class="form-input" placeholder="Business address"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="visit_address">Visit Address</label>
+                            <textarea id="visit_address" required rows="2" class="form-input" placeholder="Visit address"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Person Met Section -->
+                    <div class="input-group">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="!mb-0">Person Met With</label>
+                            <button type="button" onclick="addPersonMet()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 text-sm font-medium rounded-lg">+ Add Person</button>
+                        </div>
+                        <div id="persons_met_container" class="space-y-2">
+                            <div class="flex gap-2 person-row">
+                                <input type="text" name="person_met_name" required class="form-input flex-1" placeholder="Person Name">
+                                <input type="tel" name="person_met_phone" required pattern="\d{10}" class="form-input w-36" placeholder="Phone (10 digits)">
+                                <button type="button" onclick="removePersonMet(this)" class="text-red-500 hover:text-red-700 px-2 text-xl" disabled>×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="gst_number">GST Number (15 characters)</label>
+                        <input type="text" id="gst_number" required pattern="[A-Za-z0-9]{15}" maxlength="15" class="form-input" placeholder="15-character GST">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Business Location</label>
+                        <div class="flex gap-6 mt-2">
+                            <label class="inline-flex items-center"><input type="radio" name="business_location" value="Commercial" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2 text-gray-700">Commercial</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="business_location" value="Residential" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2 text-gray-700">Residential</span></label>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="gps_location" class="!mb-0">GPS Location</label>
+                            <button type="button" onclick="getGpsLocation()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 text-sm font-medium rounded-lg">Get GPS</button>
+                        </div>
+                        <input type="text" id="gps_location" readonly class="form-input bg-gray-100" placeholder="Click 'Get GPS' to fetch">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Shop Ownership</label>
+                        <div class="flex flex-wrap gap-4 mt-2">
+                            <label class="inline-flex items-center"><input type="radio" name="shop_ownership" value="Owned" required class="form-radio h-4 w-4 text-blue-600" onchange="toggleRentField()"> <span class="ml-2 text-gray-700">Owned</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="shop_ownership" value="Rented" class="form-radio h-4 w-4 text-blue-600" onchange="toggleRentField()"> <span class="ml-2 text-gray-700">Rented</span></label>
+                            <div id="rent_amount_container" class="hidden">
+                                <input type="number" id="rent_amount" class="form-input w-40" placeholder="Rent Amount">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Step 3: Additional Business Details -->
+            <div id="step-3" class="step-content hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600">Additional Business Details</h2>
+                <div class="step-container">
+                    
+                    <div class="input-group">
+                        <label for="business_relates_to">Business Related To</label>
+                        <textarea id="business_relates_to" rows="2" class="form-input" placeholder="Describe what the business relates to"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="input-group">
+                            <label for="business_since_year">Business Since (Year)</label>
+                            <input type="number" id="business_since_year" min="1950" max="2025" class="form-input" placeholder="e.g., 2010">
+                        </div>
+                        <div class="input-group">
+                            <label for="turnover">Annual Turnover</label>
+                            <input type="text" id="turnover" class="form-input" placeholder="e.g., 50 Lakhs">
+                        </div>
+                        <div class="input-group">
+                            <label for="net_income">Net Income</label>
+                            <input type="text" id="net_income" class="form-input" placeholder="e.g., 10 Lakhs">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="input-group">
+                            <label for="stock_value">Stock Value</label>
+                            <input type="text" id="stock_value" class="form-input" placeholder="e.g., 5 Lakhs">
+                        </div>
+                        <div class="input-group">
+                            <label for="staff_count">Staff Count</label>
+                            <input type="number" id="staff_count" min="0" class="form-input" placeholder="Number of staff">
+                        </div>
+                        <div class="input-group">
+                            <label for="monthly_salary">Monthly Salary (Total)</label>
+                            <input type="number" id="monthly_salary" min="0" class="form-input" placeholder="Total monthly salary">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Transaction Type</label>
+                        <div class="flex gap-6 mt-2">
+                            <label class="inline-flex items-center"><input type="radio" name="txn_type" value="CASH" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2 text-gray-700">Cash</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="txn_type" value="ONLINE" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2 text-gray-700">Online</span></label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="creditors_payment_time">Creditors Payment Time</label>
+                            <input type="text" id="creditors_payment_time" class="form-input" placeholder="e.g., 30 days">
+                        </div>
+                        <div class="input-group">
+                            <label for="debtors_payment_time">Debtors Payment Time</label>
+                            <input type="text" id="debtors_payment_time" class="form-input" placeholder="e.g., 45 days">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Payment Modes</label>
+                        <div class="flex flex-wrap gap-4 mt-2 bg-blue-50 p-3 rounded-lg">
+                            <label class="inline-flex items-center"><input type="checkbox" name="payment_mode" value="Cash" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">Cash</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="payment_mode" value="UPI" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">UPI</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="payment_mode" value="RTGS" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">RTGS</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="payment_mode" value="Cheque" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">Cheque</span></label>
+                            <label class="inline-flex items-center"><input type="checkbox" name="payment_mode" value="NEFT" class="form-checkbox h-5 w-5 text-blue-600"> <span class="ml-2 text-gray-700">NEFT</span></label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="purchase_area">Purchase Area</label>
+                            <input type="text" id="purchase_area" class="form-input" placeholder="e.g., Local, National">
+                        </div>
+                        <div class="input-group">
+                            <label for="sale_area">Sale Area</label>
+                            <input type="text" id="sale_area" class="form-input" placeholder="e.g., Local, National">
+                        </div>
+                    </div>
+
+                    <!-- Co-Applicant Section -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Co-Applicant (Optional)</h3>
+                            <button type="button" id="toggle_co_applicant_btn" onclick="toggleCoApplicant()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-sm">
+                                + Add Co-Applicant
+                            </button>
+                        </div>
+                        
+                        <div id="co_applicant_section" class="hidden bg-blue-50 p-4 rounded-lg space-y-4">
+                            <div class="input-group">
+                                <label for="co_applicant_involvement">Involvement Type</label>
+                                <select id="co_applicant_involvement" onchange="handleCoApplicantType()" class="form-input bg-white">
+                                    <option value="">Select Type</option>
+                                    <option value="Same Business">Same Business</option>
+                                    <option value="Other Business">Other Business</option>
+                                    <option value="Employment">Employment</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Same Business Message -->
+                            <div id="co_app_same_biz" class="hidden p-3 bg-blue-100 rounded-lg text-gray-700">
+                                Co-applicant is handling the same business along with applicant and sharing profit.
+                            </div>
+                            
+                            <!-- Other Business Fields -->
+                            <div id="co_app_other_biz" class="hidden space-y-3">
+                                <input type="text" id="co_app_business_name" class="form-input" placeholder="Business Name">
+                                <textarea id="co_app_business_address" rows="2" class="form-input" placeholder="Business Address"></textarea>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="text" id="co_app_turnover" class="form-input" placeholder="Turnover">
+                                    <input type="text" id="co_app_net_income" class="form-input" placeholder="Net Income">
+                                </div>
+                            </div>
+                            
+                            <!-- Employment Fields -->
+                            <div id="co_app_employment" class="hidden space-y-3">
+                                <input type="text" id="co_app_employer_name" class="form-input" placeholder="Employer Name">
+                                <input type="text" id="co_app_position" class="form-input" placeholder="Position/Designation">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <input type="number" id="co_app_yearly_salary" class="form-input" placeholder="Yearly Salary">
+                                    <input type="text" id="co_app_duration" class="form-input" placeholder="Duration (e.g., 5 years)">
+                                </div>
+                            </div>
+                            
+                            <!-- Other Details -->
+                            <div id="co_app_other" class="hidden">
+                                <textarea id="co_app_other_details" rows="2" class="form-input" placeholder="Other details about co-applicant"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Other Businesses -->
+            <div id="step-4" class="step-content hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600">Other Businesses</h2>
+                <div class="step-container">
+                    <p class="text-gray-600">Add any other businesses the applicant is involved in (optional).</p>
+                    
+                    <div id="other_businesses_container" class="space-y-4">
+                        <!-- Dynamic other businesses will be added here -->
+                    </div>
+
+                    <button type="button" onclick="addOtherBusiness()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl">
+                        + Add Other Business
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 5: Bank & Loan Details -->
+            <div id="step-5" class="step-content hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600">Bank & Loan Details</h2>
+                <div class="step-container">
+                    
+                    <!-- Loans Section -->
+                    <div class="border-l-4 border-blue-600 pl-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Loan Details</h3>
+                        <div id="loans_container" class="space-y-3">
+                            <!-- Dynamic loans will be added here -->
+                        </div>
+                        <button type="button" onclick="addLoan()" class="mt-3 bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 text-sm font-medium rounded-lg">
+                            + Add Loan
+                        </button>
+                    </div>
+
+                    <!-- Bank Accounts Section -->
+                    <div class="border-l-4 border-green-600 pl-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Bank Accounts</h3>
+                        <div id="bank_accounts_container" class="space-y-3">
+                            <!-- Dynamic bank accounts will be added here -->
+                        </div>
+                        <button type="button" onclick="addBankAccount()" class="mt-3 bg-green-100 text-green-700 hover:bg-green-200 px-4 py-2 text-sm font-medium rounded-lg">
+                            + Add Bank Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Security & Loan Requirement -->
+            <div id="step-6" class="step-content hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600">Security & Loan Requirement</h2>
+                <div class="step-container">
+                    
+                    <div class="input-group">
+                        <label for="house_address">House/Property Address</label>
+                        <textarea id="house_address" required rows="2" class="form-input" placeholder="Enter property address"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="house_area">Area (sq. ft.)</label>
+                            <input type="number" id="house_area" required min="1" class="form-input" placeholder="Area in sq. ft.">
+                        </div>
+                        <div class="input-group">
+                            <label for="house_market_value">Market Value (₹)</label>
+                            <input type="number" id="house_market_value" required min="1" class="form-input" placeholder="Market value">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="house_ownership">House Ownership</label>
+                        <select id="house_ownership" required onchange="toggleOtherField('house_ownership', 'other_house_owner_container')" class="form-input bg-white">
+                            <option value="">Select Owner</option>
+                            <option value="Self">Self</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Father">Father</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div id="other_house_owner_container" class="input-group hidden">
+                        <label for="other_house_owner">Other Owner Name</label>
+                        <input type="text" id="other_house_owner" class="form-input" placeholder="Enter owner name">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="amount_required">Amount Required (₹)</label>
+                            <input type="number" id="amount_required" required min="1" class="form-input" placeholder="Loan amount required">
+                        </div>
+                        <div class="input-group">
+                            <label for="end_use">End Use</label>
+                            <select id="end_use" required onchange="toggleOtherField('end_use', 'other_end_use_container')" class="form-input bg-white">
+                                <option value="">Select End Use</option>
+                                <option value="Home Loan">Home Loan</option>
+                                <option value="Construction Loan">Construction Loan</option>
+                                <option value="Business Expansion">Business Expansion</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="other_end_use_container" class="input-group hidden">
+                        <label for="other_end_use">Other End Use</label>
+                        <input type="text" id="other_end_use" class="form-input" placeholder="Describe end use">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Conclusion -->
+            <div id="step-7" class="step-content hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-blue-600">General Observation & Conclusion</h2>
+                <div class="step-container">
+                    
+                    <div class="input-group">
+                        <label for="general_observation">General Observation</label>
+                        <textarea id="general_observation" required rows="3" class="form-input" placeholder="Enter your general observations"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="nearby_person1">Nearby Person 1 (Confirmation)</label>
+                            <input type="text" id="nearby_person1" required class="form-input" placeholder="Name of person">
+                        </div>
+                        <div class="input-group">
+                            <label for="nearby_person2">Nearby Person 2 (Confirmation)</label>
+                            <input type="text" id="nearby_person2" required class="form-input" placeholder="Name of person">
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg space-y-4">
+                        <h3 class="font-semibold text-gray-800">Verification Checklist</h3>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label>Sale Invoices</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="sale_invoices" value="Received" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Received</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="sale_invoices" value="Not Received" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Not Received</span></label>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Purchase Invoices</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="purchase_invoices" value="Received" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Received</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="purchase_invoices" value="Not Received" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Not Received</span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Business Setup</label>
+                            <div class="flex flex-wrap gap-4 mt-1">
+                                <label class="inline-flex items-center"><input type="radio" name="business_setup" value="Exists & Satisfactory" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Exists & Satisfactory</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="business_setup" value="Exists & Unsatisfactory" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Exists & Unsatisfactory</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="business_setup" value="Not Exists" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Not Exists</span></label>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Stock Pictures</label>
+                            <div class="flex flex-wrap gap-4 mt-1">
+                                <label class="inline-flex items-center"><input type="radio" name="stock_pictures" value="Available & Attached" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Available & Attached</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="stock_pictures" value="Available but not attached" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Available but not attached</span></label>
+                                <label class="inline-flex items-center"><input type="radio" name="stock_pictures" value="Not Available" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Not Available</span></label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label>Signboard Available</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="signboard" value="YES" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="signboard" value="NO" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Business Registration</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="biz_registration" value="YES" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="biz_registration" value="NO" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label>Education Proof Provided</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="education_proof" value="YES" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="education_proof" value="NO" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="true_caller_name">Name on Truecaller</label>
+                                <input type="text" id="true_caller_name" required class="form-input" placeholder="Name shown on Truecaller">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label>QR Available at Premise</label>
+                                <div class="flex flex-wrap gap-3 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="qr_availability" value="Yes - Belongs to Applicant" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes - Applicant</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="qr_availability" value="Yes - Belongs to other" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes - Other</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="qr_availability" value="No" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Signboard Contact</label>
+                                <div class="flex flex-wrap gap-3 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="signboard_contact" value="Yes - Belongs to Applicant" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes - Applicant</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="signboard_contact" value="Yes - Belongs to other" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes - Other</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="signboard_contact" value="No" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="input-group">
+                                <label>Electricity Bill</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="electricity_bill" value="YES" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="electricity_bill" value="NO" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Rent Agreement</label>
+                                <div class="flex gap-3 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="rent_agreement" value="YES" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="rent_agreement" value="NO" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="rent_agreement" value="NA" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">N/A</span></label>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>Commercial Vehicle</label>
+                                <div class="flex gap-4 mt-1">
+                                    <label class="inline-flex items-center"><input type="radio" name="commercial_vehicle" value="YES" required class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">Yes</span></label>
+                                    <label class="inline-flex items-center"><input type="radio" name="commercial_vehicle" value="NO" class="form-radio h-4 w-4 text-blue-600"> <span class="ml-2">No</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="other_findings">Other Findings (Optional)</label>
+                        <textarea id="other_findings" rows="2" class="form-input" placeholder="Any other findings"></textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Overall Status</label>
+                        <div class="flex flex-wrap gap-6 mt-2">
+                            <label class="inline-flex items-center"><input type="radio" name="overall_status" value="Positive" required class="form-radio h-5 w-5 text-green-600"> <span class="ml-2 text-green-700 font-medium">Positive</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="overall_status" value="Negative" class="form-radio h-5 w-5 text-red-600"> <span class="ml-2 text-red-700 font-medium">Negative</span></label>
+                            <label class="inline-flex items-center"><input type="radio" name="overall_status" value="Refer to credit" class="form-radio h-5 w-5 text-yellow-600"> <span class="ml-2 text-yellow-700 font-medium">Refer to Credit</span></label>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="status_remark">Status Remark</label>
+                        <textarea id="status_remark" rows="2" class="form-input" placeholder="Remark for the overall status"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between pt-8 border-t border-gray-200 mt-8">
+                <button type="button" id="back-btn" onclick="prevStep()" class="hidden bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-xl transition duration-300">
+                    ← Back
+                </button>
+                <div class="flex items-center gap-4 ml-auto">
+                    <div id="submit-error" class="hidden text-red-600"></div>
+                    <button type="button" id="next-btn" onclick="nextStep()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
+                        Next →
+                    </button>
+                    <button type="button" id="submit-btn" onclick="submitForm()" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300">
+                        Submit Application
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full text-center">
+            <div class="text-green-500 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-3">Application Submitted!</h3>
+            <p class="text-gray-600 mb-2">Application ID: <span id="application-id" class="font-semibold"></span></p>
+            <p class="text-gray-600 mb-6">Your data has been saved successfully.</p>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="list.html" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg">
+                    View All Applications
+                </a>
+                <button onclick="resetForm(); window.location.href='form.html';" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                    New Application
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_URL = 'http://localhost:8000/api';
+        const TOTAL_STEPS = 7;
+        let currentStep = 1;
+        
+        // Token Management
+        function getToken() { return localStorage.getItem('authToken'); }
+        function setToken(token) { localStorage.setItem('authToken', token); }
+        function clearToken() { localStorage.removeItem('authToken'); localStorage.removeItem('currentUser'); }
+        function setCurrentUser(user) { localStorage.setItem('currentUser', JSON.stringify(user)); }
+        function getCurrentUser() { const u = localStorage.getItem('currentUser'); return u ? JSON.parse(u) : null; }
+
+        // Login Handler
+        async function handleLogin(event) {
+            event.preventDefault();
+            const loginBtn = document.getElementById('login-btn');
+            const errorDiv = document.getElementById('login-error');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            loginBtn.textContent = 'Logging in...';
+            loginBtn.disabled = true;
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setToken(data.token);
+                    setCurrentUser(data.user);
+                    showApplicationForm();
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed.';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error. Check if server is running.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loginBtn.textContent = 'Login & Start Screening';
+                loginBtn.disabled = false;
+            }
+        }
+
+        async function handleLogout() {
+            try { await fetch(`${API_URL}/auth/logout/`, { method: 'POST', headers: { 'Authorization': `Token ${getToken()}` } }); } catch {}
+            clearToken();
+            showLoginForm();
+        }
+
+        function showApplicationForm() {
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('form-wrapper').classList.remove('hidden');
+            const user = getCurrentUser();
+            if (user) document.getElementById('logged-in-user').textContent = user.username;
+            setVisitDate();
+            updateStepUI();
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-container').classList.remove('hidden');
+            document.getElementById('form-wrapper').classList.add('hidden');
+            document.getElementById('login-form').reset();
+        }
+
+        function setVisitDate() {
+            const today = new Date();
+            document.getElementById('visit_date').value = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
+        }
+
+        // Step Navigation
+        function updateStepUI() {
+            // Hide all steps, show current
+            for (let i = 1; i <= TOTAL_STEPS; i++) {
+                document.getElementById(`step-${i}`).classList.toggle('hidden', i !== currentStep);
+                document.getElementById(`step-label-${i}`).classList.toggle('text-blue-600', i <= currentStep);
+                document.getElementById(`step-label-${i}`).classList.toggle('text-gray-400', i > currentStep);
+            }
+            document.getElementById('step-indicator').textContent = `Step ${currentStep} of ${TOTAL_STEPS}`;
+            document.getElementById('progress-bar').style.width = `${(currentStep / TOTAL_STEPS) * 100}%`;
+            document.getElementById('back-btn').classList.toggle('hidden', currentStep === 1);
+            document.getElementById('next-btn').classList.toggle('hidden', currentStep === TOTAL_STEPS);
+            document.getElementById('submit-btn').classList.toggle('hidden', currentStep !== TOTAL_STEPS);
+        }
+
+        function validateCurrentStep() {
+            const stepEl = document.getElementById(`step-${currentStep}`);
+            const inputs = stepEl.querySelectorAll('[required]');
+            let valid = true, firstInvalid = null;
+
+            inputs.forEach(input => {
+                if (input.type === 'radio') {
+                    if (!document.querySelector(`input[name="${input.name}"]:checked`)) {
+                        valid = false;
+                        if (!firstInvalid) firstInvalid = input;
+                    }
+                } else if (!input.checkValidity()) {
+                    valid = false;
+                    if (!firstInvalid) firstInvalid = input;
+                }
+            });
+
+            // Step 1: family members check
+            if (currentStep === 1 && !document.querySelector('input[name="family_members"]:checked')) {
+                valid = false;
+                if (!firstInvalid) firstInvalid = document.querySelector('input[name="family_members"]');
+            }
+
+            if (!valid && firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalid.focus();
+                firstInvalid.reportValidity();
+            }
+            return valid;
+        }
+
+        function nextStep() {
+            if (validateCurrentStep() && currentStep < TOTAL_STEPS) {
+                currentStep++;
+                updateStepUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Toggle Functions
+        function toggleOtherField(sourceId, targetId, triggerValue = 'Other') {
+            let el = document.getElementById(sourceId) || document.querySelector(`input[name="${sourceId}"]:checked`);
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            const show = el && ((el.tagName === 'SELECT' && el.value === triggerValue) || (el.type === 'radio' && el.value === triggerValue));
+            target.classList.toggle('hidden', !show);
+            const input = target.querySelector('input, textarea');
+            if (input) input.required = show;
+        }
+
+        function toggleRentField() {
+            const isRented = document.querySelector('input[name="shop_ownership"]:checked')?.value === 'Rented';
+            document.getElementById('rent_amount_container').classList.toggle('hidden', !isRented);
+        }
+
+        function calculateAge() {
+            const dob = document.getElementById('dob').value.split('/');
+            if (dob.length === 3) {
+                const birth = new Date(dob[2], dob[1]-1, dob[0]);
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+                if (age > 0) document.getElementById('age').value = age;
+            }
+        }
+
+        function getGpsLocation() {
+            const gpsInput = document.getElementById('gps_location');
+            gpsInput.value = 'Fetching...';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => gpsInput.value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`,
+                    () => gpsInput.value = 'Location access denied'
+                );
+            } else gpsInput.value = 'Geolocation not supported';
+        }
+
+        // Dynamic Fields - Owners
+        function addOwner() {
+            const container = document.getElementById('owners_container');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 owner-row';
+            div.innerHTML = `<input type="text" name="owner_name" required class="form-input" placeholder="Owner Name">
+                <button type="button" onclick="removeOwner(this)" class="text-red-500 hover:text-red-700 px-2 text-xl">×</button>`;
+            container.appendChild(div);
+            updateOwnerButtons();
+        }
+
+        function removeOwner(btn) {
+            btn.closest('.owner-row').remove();
+            updateOwnerButtons();
+        }
+
+        function updateOwnerButtons() {
+            const rows = document.querySelectorAll('.owner-row');
+            rows.forEach(row => row.querySelector('button').disabled = rows.length === 1);
+        }
+
+        // Dynamic Fields - Persons Met
+        function addPersonMet() {
+            const container = document.getElementById('persons_met_container');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 person-row';
+            div.innerHTML = `<input type="text" name="person_met_name" required class="form-input flex-1" placeholder="Person Name">
+                <input type="tel" name="person_met_phone" required pattern="\\d{10}" class="form-input w-36" placeholder="Phone (10 digits)">
+                <button type="button" onclick="removePersonMet(this)" class="text-red-500 hover:text-red-700 px-2 text-xl">×</button>`;
+            container.appendChild(div);
+            updatePersonMetButtons();
+        }
+
+        function removePersonMet(btn) {
+            btn.closest('.person-row').remove();
+            updatePersonMetButtons();
+        }
+
+        function updatePersonMetButtons() {
+            const rows = document.querySelectorAll('.person-row');
+            rows.forEach(row => row.querySelector('button').disabled = rows.length === 1);
+        }
+
+        // Dynamic Fields - Other Businesses (Step 4)
+        let otherBizCount = 0;
+        function addOtherBusiness() {
+            otherBizCount++;
+            const container = document.getElementById('other_businesses_container');
+            const div = document.createElement('div');
+            div.className = 'bg-blue-50 p-4 rounded-lg other-biz-row';
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-semibold text-gray-700">Other Business #${otherBizCount}</h4>
+                    <button type="button" onclick="removeOtherBusiness(this)" class="text-red-500 hover:text-red-700 text-xl">×</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="other_biz_name" required class="form-input" placeholder="Business Name">
+                    <input type="text" name="other_biz_owner" required class="form-input" placeholder="Owner Name">
+                </div>
+                <textarea name="other_biz_address" required rows="2" class="form-input mt-3" placeholder="Business Address"></textarea>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                    <select name="other_biz_relationship" required class="form-input bg-white">
+                        <option value="">Relationship</option>
+                        <option value="Self">Self</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" name="other_biz_income" required class="form-input" placeholder="Yearly Income">
+                    <input type="number" name="other_biz_vintage" required min="1950" max="2025" class="form-input" placeholder="Since Year">
+                </div>
+                <textarea name="other_biz_remarks" rows="2" class="form-input mt-3" placeholder="Remarks"></textarea>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeOtherBusiness(btn) {
+            btn.closest('.other-biz-row').remove();
+            // Renumber remaining
+            document.querySelectorAll('.other-biz-row h4').forEach((h, i) => h.textContent = `Other Business #${i + 1}`);
+            otherBizCount = document.querySelectorAll('.other-biz-row').length;
+        }
+
+        // Dynamic Fields - Loans (Step 5)
+        let loanCount = 0;
+        function addLoan() {
+            loanCount++;
+            const container = document.getElementById('loans_container');
+            const div = document.createElement('div');
+            div.className = 'bg-gray-50 p-3 rounded-lg loan-row';
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-medium text-gray-700">Loan #${loanCount}</span>
+                    <button type="button" onclick="removeLoan(this)" class="text-red-500 hover:text-red-700 text-xl">×</button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <select name="loan_type" required class="form-input bg-white">
+                        <option value="">Type</option>
+                        <option value="Car loan">Car Loan</option>
+                        <option value="Home loan">Home Loan</option>
+                        <option value="Personal loan">Personal Loan</option>
+                        <option value="Business loan">Business Loan</option>
+                        <option value="LAP">LAP</option>
+                    </select>
+                    <input type="text" name="loan_bank_name" required class="form-input" placeholder="Bank Name">
+                    <input type="text" name="loan_amount" required class="form-input" placeholder="Amount">
+                    <input type="number" name="loan_emi" required min="1" class="form-input" placeholder="EMI">
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeLoan(btn) {
+            btn.closest('.loan-row').remove();
+            document.querySelectorAll('.loan-row span').forEach((s, i) => s.textContent = `Loan #${i + 1}`);
+            loanCount = document.querySelectorAll('.loan-row').length;
+        }
+
+        // Dynamic Fields - Bank Accounts (Step 5)
+        let accountCount = 0;
+        function addBankAccount() {
+            accountCount++;
+            const container = document.getElementById('bank_accounts_container');
+            const div = document.createElement('div');
+            div.className = 'bg-gray-50 p-3 rounded-lg account-row';
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-medium text-gray-700">Account #${accountCount}</span>
+                    <button type="button" onclick="removeAccount(this)" class="text-red-500 hover:text-red-700 text-xl">×</button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <input type="text" name="account_bank" required class="form-input" placeholder="Bank Name">
+                    <input type="text" name="account_branch" required class="form-input" placeholder="Branch">
+                    <select name="account_type" required class="form-input bg-white">
+                        <option value="">Type</option>
+                        <option value="Saving Account">Savings</option>
+                        <option value="Current Account">Current</option>
+                    </select>
+                    <input type="text" name="account_cc_limit" required class="form-input" placeholder="CC Limit">
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeAccount(btn) {
+            btn.closest('.account-row').remove();
+            document.querySelectorAll('.account-row span').forEach((s, i) => s.textContent = `Account #${i + 1}`);
+            accountCount = document.querySelectorAll('.account-row').length;
+        }
+
+        // Co-Applicant Functions
+        let coApplicantEnabled = false;
+        function toggleCoApplicant() {
+            coApplicantEnabled = !coApplicantEnabled;
+            document.getElementById('co_applicant_section').classList.toggle('hidden', !coApplicantEnabled);
+            document.getElementById('toggle_co_applicant_btn').textContent = coApplicantEnabled ? '- Remove Co-Applicant' : '+ Add Co-Applicant';
+            if (!coApplicantEnabled) {
+                document.getElementById('co_applicant_involvement').value = '';
+                handleCoApplicantType();
+            }
+        }
+
+        function handleCoApplicantType() {
+            const type = document.getElementById('co_applicant_involvement').value;
+            ['co_app_same_biz', 'co_app_other_biz', 'co_app_employment', 'co_app_other'].forEach(id => 
+                document.getElementById(id).classList.add('hidden'));
+            if (type === 'Same Business') document.getElementById('co_app_same_biz').classList.remove('hidden');
+            else if (type === 'Other Business') document.getElementById('co_app_other_biz').classList.remove('hidden');
+            else if (type === 'Employment') document.getElementById('co_app_employment').classList.remove('hidden');
+            else if (type === 'Other') document.getElementById('co_app_other').classList.remove('hidden');
+        }
+
+        // Collect Form Data
+        function collectFormData() {
+            // Step 1 data
+            const familyMembers = [...document.querySelectorAll('input[name="family_members"]:checked')].map(c => c.value);
+            
+            // Step 2 data
+            const owners = [...document.querySelectorAll('input[name="owner_name"]')].map(i => ({ name: i.value }));
+            const personNames = document.querySelectorAll('input[name="person_met_name"]');
+            const personPhones = document.querySelectorAll('input[name="person_met_phone"]');
+            const persons_met = [];
+            personNames.forEach((n, i) => persons_met.push({ name: n.value, phone: personPhones[i].value }));
+            
+            // Step 3 data
+            const paymentModes = [...document.querySelectorAll('input[name="payment_mode"]:checked')].map(c => c.value);
+            
+            // Co-Applicant data
+            let coApplicant = null;
+            const coAppType = document.getElementById('co_applicant_involvement').value;
+            if (coApplicantEnabled && coAppType) {
+                coApplicant = { involvement_type: coAppType };
+                if (coAppType === 'Other Business') {
+                    coApplicant.business_name = document.getElementById('co_app_business_name').value || null;
+                    coApplicant.business_address = document.getElementById('co_app_business_address').value || null;
+                    coApplicant.turnover = document.getElementById('co_app_turnover').value || null;
+                    coApplicant.net_income = document.getElementById('co_app_net_income').value || null;
+                } else if (coAppType === 'Employment') {
+                    coApplicant.employer_name = document.getElementById('co_app_employer_name').value || null;
+                    coApplicant.position = document.getElementById('co_app_position').value || null;
+                    coApplicant.yearly_salary = document.getElementById('co_app_yearly_salary').value ? parseFloat(document.getElementById('co_app_yearly_salary').value) : null;
+                    coApplicant.duration = document.getElementById('co_app_duration').value || null;
+                } else if (coAppType === 'Other') {
+                    coApplicant.other_details = document.getElementById('co_app_other_details').value || null;
+                }
+            }
+            
+            // Step 4 data - Other Businesses
+            const otherBusinesses = [];
+            document.querySelectorAll('.other-biz-row').forEach(row => {
+                otherBusinesses.push({
+                    business_name: row.querySelector('[name="other_biz_name"]').value,
+                    owner_name: row.querySelector('[name="other_biz_owner"]').value,
+                    address: row.querySelector('[name="other_biz_address"]').value,
+                    relationship: row.querySelector('[name="other_biz_relationship"]').value,
+                    yearly_income: row.querySelector('[name="other_biz_income"]').value,
+                    vintage_year: parseInt(row.querySelector('[name="other_biz_vintage"]').value),
+                    remarks: row.querySelector('[name="other_biz_remarks"]').value || ''
+                });
+            });
+            
+            // Step 5 data - Loans
+            const loans = [];
+            document.querySelectorAll('.loan-row').forEach(row => {
+                loans.push({
+                    loan_type: row.querySelector('[name="loan_type"]').value,
+                    bank_name: row.querySelector('[name="loan_bank_name"]').value,
+                    loan_amount: row.querySelector('[name="loan_amount"]').value,
+                    emi: parseFloat(row.querySelector('[name="loan_emi"]').value)
+                });
+            });
+            
+            // Step 5 data - Bank Accounts
+            const bankAccounts = [];
+            document.querySelectorAll('.account-row').forEach(row => {
+                bankAccounts.push({
+                    bank_name: row.querySelector('[name="account_bank"]').value,
+                    branch: row.querySelector('[name="account_branch"]').value,
+                    account_type: row.querySelector('[name="account_type"]').value,
+                    cc_limit: row.querySelector('[name="account_cc_limit"]').value
+                });
+            });
+
+            return {
+                // Step 1
+                applicant_name: document.getElementById('applicant_name').value,
+                gender: document.querySelector('input[name="gender"]:checked')?.value || '',
+                file_no: document.getElementById('file_no').value,
+                allocation_date: document.getElementById('allocation_date').value,
+                visit_date: document.getElementById('visit_date').value,
+                dob: document.getElementById('dob').value || null,
+                age: parseInt(document.getElementById('age').value),
+                qualification: document.getElementById('qualification').value,
+                other_qualification: document.getElementById('other_qualification').value || null,
+                prof_qualification: document.getElementById('prof_qualification').value,
+                other_prof_qualification: document.getElementById('other_prof_qualification').value || null,
+                telephone: document.getElementById('telephone').value,
+                tel_owner: document.querySelector('input[name="tel_owner"]:checked')?.value || '',
+                other_tel_owner: document.getElementById('other_tel_owner').value || null,
+                residential_address: document.getElementById('residential_address').value,
+                family_members: familyMembers,
+                
+                // Step 2 + Step 3 (business_details)
+                business_details: {
+                    business_name: document.getElementById('business_name').value,
+                    ownership_type: document.getElementById('ownership_type').value,
+                    business_address: document.getElementById('business_address').value,
+                    visit_address: document.getElementById('visit_address').value,
+                    gst_number: document.getElementById('gst_number').value,
+                    business_location: document.querySelector('input[name="business_location"]:checked')?.value || '',
+                    gps_location: document.getElementById('gps_location').value || null,
+                    shop_ownership: document.querySelector('input[name="shop_ownership"]:checked')?.value || '',
+                    rent_amount: document.getElementById('rent_amount').value ? parseFloat(document.getElementById('rent_amount').value) : null,
+                    owners: owners,
+                    persons_met: persons_met,
+                    // Step 3 fields
+                    business_relates_to: document.getElementById('business_relates_to').value || null,
+                    business_since_year: document.getElementById('business_since_year').value ? parseInt(document.getElementById('business_since_year').value) : null,
+                    turnover: document.getElementById('turnover').value || null,
+                    net_income: document.getElementById('net_income').value || null,
+                    stock_value: document.getElementById('stock_value').value || null,
+                    txn_type: document.querySelector('input[name="txn_type"]:checked')?.value || 'CASH',
+                    staff_count: document.getElementById('staff_count').value ? parseInt(document.getElementById('staff_count').value) : null,
+                    monthly_salary: document.getElementById('monthly_salary').value ? parseFloat(document.getElementById('monthly_salary').value) : null,
+                    creditors_payment_time: document.getElementById('creditors_payment_time').value || null,
+                    debtors_payment_time: document.getElementById('debtors_payment_time').value || null,
+                    payment_modes: paymentModes,
+                    purchase_area: document.getElementById('purchase_area').value || null,
+                    sale_area: document.getElementById('sale_area').value || null
+                },
+                
+                // Co-Applicant (Step 3)
+                co_applicant: coApplicant,
+                
+                // Step 4
+                other_businesses: otherBusinesses,
+                
+                // Step 5
+                loans: loans,
+                bank_accounts: bankAccounts,
+                
+                // Step 6
+                security_details: {
+                    house_address: document.getElementById('house_address').value,
+                    house_area: parseFloat(document.getElementById('house_area').value),
+                    house_market_value: parseFloat(document.getElementById('house_market_value').value),
+                    house_ownership: document.getElementById('house_ownership').value,
+                    other_house_owner: document.getElementById('other_house_owner').value || null,
+                    amount_required: parseFloat(document.getElementById('amount_required').value),
+                    end_use: document.getElementById('end_use').value,
+                    other_end_use: document.getElementById('other_end_use').value || null
+                },
+                
+                // Step 7 - Conclusion
+                conclusion: {
+                    general_observation: document.getElementById('general_observation').value,
+                    nearby_person1: document.getElementById('nearby_person1').value,
+                    nearby_person2: document.getElementById('nearby_person2').value,
+                    sale_invoices: document.querySelector('input[name="sale_invoices"]:checked')?.value || '',
+                    purchase_invoices: document.querySelector('input[name="purchase_invoices"]:checked')?.value || '',
+                    business_setup: document.querySelector('input[name="business_setup"]:checked')?.value || '',
+                    stock_pictures: document.querySelector('input[name="stock_pictures"]:checked')?.value || '',
+                    signboard: document.querySelector('input[name="signboard"]:checked')?.value || '',
+                    biz_registration: document.querySelector('input[name="biz_registration"]:checked')?.value || '',
+                    education_proof: document.querySelector('input[name="education_proof"]:checked')?.value || '',
+                    true_caller_name: document.getElementById('true_caller_name').value,
+                    qr_availability: document.querySelector('input[name="qr_availability"]:checked')?.value || '',
+                    signboard_contact: document.querySelector('input[name="signboard_contact"]:checked')?.value || '',
+                    electricity_bill: document.querySelector('input[name="electricity_bill"]:checked')?.value || '',
+                    rent_agreement: document.querySelector('input[name="rent_agreement"]:checked')?.value || '',
+                    commercial_vehicle: document.querySelector('input[name="commercial_vehicle"]:checked')?.value || '',
+                    other_findings: document.getElementById('other_findings').value || null,
+                    overall_status: document.querySelector('input[name="overall_status"]:checked')?.value || '',
+                    status_remark: document.getElementById('status_remark').value || null
+                }
+            };
+        }
+
+        // Submit Form
+        async function submitForm() {
+            if (!validateCurrentStep()) return;
+
+            const submitBtn = document.getElementById('submit-btn');
+            const errorDiv = document.getElementById('submit-error');
+            submitBtn.textContent = editMode ? 'Updating...' : 'Submitting...';
+            submitBtn.disabled = true;
+            errorDiv.classList.add('hidden');
+
+            const formData = collectFormData();
+            console.log(editMode ? 'Updating:' : 'Submitting:', formData);
+
+            try {
+                const url = editMode ? `${API_URL}/applications/${editApplicationId}/` : `${API_URL}/applications/`;
+                const method = editMode ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${getToken()}` },
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('application-id').textContent = data.id || 'N/A';
+                    document.getElementById('success-modal').classList.remove('hidden');
+                    // Update modal text for edit mode
+                    if (editMode) {
+                        document.querySelector('#success-modal h3').textContent = 'Application Updated!';
+                        document.querySelector('#success-modal p:nth-of-type(2)').textContent = 'Your changes have been saved successfully.';
+                    }
+                } else {
+                    const errors = Object.entries(data).map(([k,v]) => `${k}: ${v}`).join(', ');
+                    errorDiv.textContent = 'Failed: ' + errors;
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.textContent = 'Submit Application';
+                submitBtn.disabled = false;
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('application-form').reset();
+            currentStep = 1;
+            setVisitDate();
+            updateStepUI();
+            
+            // Reset Step 2 dynamic fields
+            document.getElementById('owners_container').innerHTML = `<div class="flex gap-2 owner-row">
+                <input type="text" name="owner_name" required class="form-input" placeholder="Owner Name">
+                <button type="button" onclick="removeOwner(this)" class="text-red-500 hover:text-red-700 px-2 text-xl" disabled>×</button></div>`;
+            document.getElementById('persons_met_container').innerHTML = `<div class="flex gap-2 person-row">
+                <input type="text" name="person_met_name" required class="form-input flex-1" placeholder="Person Name">
+                <input type="tel" name="person_met_phone" required pattern="\\d{10}" class="form-input w-36" placeholder="Phone (10 digits)">
+                <button type="button" onclick="removePersonMet(this)" class="text-red-500 hover:text-red-700 px-2 text-xl" disabled>×</button></div>`;
+            
+            // Reset Step 4, 5 dynamic fields
+            document.getElementById('other_businesses_container').innerHTML = '';
+            document.getElementById('loans_container').innerHTML = '';
+            document.getElementById('bank_accounts_container').innerHTML = '';
+            otherBizCount = 0;
+            loanCount = 0;
+            accountCount = 0;
+            
+            // Reset Co-Applicant
+            coApplicantEnabled = false;
+            document.getElementById('co_applicant_section').classList.add('hidden');
+            document.getElementById('toggle_co_applicant_btn').textContent = '+ Add Co-Applicant';
+            document.getElementById('co_applicant_involvement').value = '';
+            handleCoApplicantType();
+            
+            // Hide conditional fields
+            ['other_qualification_container', 'other_prof_qualification_container', 'other_tel_owner_container', 
+             'rent_amount_container', 'other_house_owner_container', 'other_end_use_container'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+        }
+
+        // Initialize
+        // Edit Mode
+        let editMode = false;
+        let editApplicationId = null;
+
+        // Check for edit parameter
+        function checkEditMode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('edit');
+            if (editId) {
+                editMode = true;
+                editApplicationId = parseInt(editId);
+                loadApplicationForEdit(editApplicationId);
+            }
+        }
+
+        // Load application for editing
+        async function loadApplicationForEdit(id) {
+            try {
+                const response = await fetch(`${API_URL}/applications/${id}/`, {
+                    headers: { 'Authorization': `Token ${getToken()}` }
+                });
+                if (response.ok) {
+                    const app = await response.json();
+                    populateForm(app);
+                    // Update UI to show edit mode
+                    document.querySelector('h1.text-3xl').textContent = 'Edit Application';
+                    document.getElementById('submit-btn').textContent = 'Update Application';
+                } else {
+                    alert('Failed to load application');
+                    window.location.href = 'list.html';
+                }
+            } catch (error) {
+                console.error('Error loading application:', error);
+                alert('Error loading application');
+            }
+        }
+
+        // Populate form with application data
+        function populateForm(app) {
+            // Step 1
+            document.getElementById('applicant_name').value = app.applicant_name || '';
+            document.querySelector(`input[name="gender"][value="${app.gender}"]`)?.click();
+            document.getElementById('file_no').value = app.file_no || '';
+            document.getElementById('allocation_date').value = app.allocation_date || '';
+            document.getElementById('visit_date').value = app.visit_date || '';
+            document.getElementById('dob').value = app.dob || '';
+            document.getElementById('age').value = app.age || '';
+            document.getElementById('qualification').value = app.qualification || '';
+            if (app.qualification === 'Other') toggleOtherField('qualification', 'other_qualification_container');
+            document.getElementById('other_qualification').value = app.other_qualification || '';
+            document.getElementById('prof_qualification').value = app.prof_qualification || '';
+            if (app.prof_qualification === 'Other') toggleOtherField('prof_qualification', 'other_prof_qualification_container');
+            document.getElementById('other_prof_qualification').value = app.other_prof_qualification || '';
+            document.getElementById('telephone').value = app.telephone || '';
+            document.querySelector(`input[name="tel_owner"][value="${app.tel_owner}"]`)?.click();
+            if (app.tel_owner === 'Other') toggleOtherField('tel_owner', 'other_tel_owner_container', 'Other');
+            document.getElementById('other_tel_owner').value = app.other_tel_owner || '';
+            document.getElementById('residential_address').value = app.residential_address || '';
+            (app.family_members || []).forEach(m => {
+                const cb = document.querySelector(`input[name="family_members"][value="${m}"]`);
+                if (cb) cb.checked = true;
+            });
+
+            // Step 2 - Business Details
+            if (app.business_details) {
+                const bd = app.business_details;
+                document.getElementById('business_name').value = bd.business_name || '';
+                document.getElementById('ownership_type').value = bd.ownership_type || '';
+                document.getElementById('business_address').value = bd.business_address || '';
+                document.getElementById('visit_address').value = bd.visit_address || '';
+                document.getElementById('gst_number').value = bd.gst_number || '';
+                document.querySelector(`input[name="business_location"][value="${bd.business_location}"]`)?.click();
+                document.getElementById('gps_location').value = bd.gps_location || '';
+                document.querySelector(`input[name="shop_ownership"][value="${bd.shop_ownership}"]`)?.click();
+                if (bd.shop_ownership === 'Rented') toggleRentField();
+                document.getElementById('rent_amount').value = bd.rent_amount || '';
+                
+                // Owners
+                const ownersContainer = document.getElementById('owners_container');
+                if (bd.owners && bd.owners.length > 0) {
+                    ownersContainer.innerHTML = '';
+                    bd.owners.forEach((owner, i) => {
+                        const div = document.createElement('div');
+                        div.className = 'flex gap-2 owner-row';
+                        div.innerHTML = `<input type="text" name="owner_name" required class="form-input" value="${owner.name}" placeholder="Owner Name">
+                            <button type="button" onclick="removeOwner(this)" class="text-red-500 hover:text-red-700 px-2 text-xl" ${i === 0 && bd.owners.length === 1 ? 'disabled' : ''}>×</button>`;
+                        ownersContainer.appendChild(div);
+                    });
+                }
+                
+                // Persons Met
+                const personsContainer = document.getElementById('persons_met_container');
+                if (bd.persons_met && bd.persons_met.length > 0) {
+                    personsContainer.innerHTML = '';
+                    bd.persons_met.forEach((person, i) => {
+                        const div = document.createElement('div');
+                        div.className = 'flex gap-2 person-row';
+                        div.innerHTML = `<input type="text" name="person_met_name" required class="form-input flex-1" value="${person.name}" placeholder="Person Name">
+                            <input type="tel" name="person_met_phone" required pattern="\\d{10}" class="form-input w-36" value="${person.phone}" placeholder="Phone">
+                            <button type="button" onclick="removePersonMet(this)" class="text-red-500 hover:text-red-700 px-2 text-xl" ${i === 0 && bd.persons_met.length === 1 ? 'disabled' : ''}>×</button>`;
+                        personsContainer.appendChild(div);
+                    });
+                }
+
+                // Step 3 fields
+                document.getElementById('business_relates_to').value = bd.business_relates_to || '';
+                document.getElementById('business_since_year').value = bd.business_since_year || '';
+                document.getElementById('turnover').value = bd.turnover || '';
+                document.getElementById('net_income').value = bd.net_income || '';
+                document.getElementById('stock_value').value = bd.stock_value || '';
+                document.getElementById('staff_count').value = bd.staff_count || '';
+                document.getElementById('monthly_salary').value = bd.monthly_salary || '';
+                if (bd.txn_type) document.querySelector(`input[name="txn_type"][value="${bd.txn_type}"]`)?.click();
+                document.getElementById('creditors_payment_time').value = bd.creditors_payment_time || '';
+                document.getElementById('debtors_payment_time').value = bd.debtors_payment_time || '';
+                (bd.payment_modes || []).forEach(m => {
+                    const cb = document.querySelector(`input[name="payment_mode"][value="${m}"]`);
+                    if (cb) cb.checked = true;
+                });
+                document.getElementById('purchase_area').value = bd.purchase_area || '';
+                document.getElementById('sale_area').value = bd.sale_area || '';
+            }
+
+            // Co-Applicant
+            if (app.co_applicant) {
+                toggleCoApplicant();
+                document.getElementById('co_applicant_involvement').value = app.co_applicant.involvement_type || '';
+                handleCoApplicantType();
+                if (app.co_applicant.involvement_type === 'Other Business') {
+                    document.getElementById('co_app_business_name').value = app.co_applicant.business_name || '';
+                    document.getElementById('co_app_business_address').value = app.co_applicant.business_address || '';
+                    document.getElementById('co_app_turnover').value = app.co_applicant.turnover || '';
+                    document.getElementById('co_app_net_income').value = app.co_applicant.net_income || '';
+                } else if (app.co_applicant.involvement_type === 'Employment') {
+                    document.getElementById('co_app_employer_name').value = app.co_applicant.employer_name || '';
+                    document.getElementById('co_app_position').value = app.co_applicant.position || '';
+                    document.getElementById('co_app_yearly_salary').value = app.co_applicant.yearly_salary || '';
+                    document.getElementById('co_app_duration').value = app.co_applicant.duration || '';
+                } else if (app.co_applicant.involvement_type === 'Other') {
+                    document.getElementById('co_app_other_details').value = app.co_applicant.other_details || '';
+                }
+            }
+
+            // Step 4 - Other Businesses
+            if (app.other_businesses && app.other_businesses.length > 0) {
+                app.other_businesses.forEach(biz => {
+                    addOtherBusiness();
+                    const rows = document.querySelectorAll('.other-biz-row');
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('[name="other_biz_name"]').value = biz.business_name || '';
+                    lastRow.querySelector('[name="other_biz_owner"]').value = biz.owner_name || '';
+                    lastRow.querySelector('[name="other_biz_address"]').value = biz.address || '';
+                    lastRow.querySelector('[name="other_biz_relationship"]').value = biz.relationship || '';
+                    lastRow.querySelector('[name="other_biz_income"]').value = biz.yearly_income || '';
+                    lastRow.querySelector('[name="other_biz_vintage"]').value = biz.vintage_year || '';
+                    lastRow.querySelector('[name="other_biz_remarks"]').value = biz.remarks || '';
+                });
+            }
+
+            // Step 5 - Loans
+            if (app.loans && app.loans.length > 0) {
+                app.loans.forEach(loan => {
+                    addLoan();
+                    const rows = document.querySelectorAll('.loan-row');
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('[name="loan_type"]').value = loan.loan_type || '';
+                    lastRow.querySelector('[name="loan_bank_name"]').value = loan.bank_name || '';
+                    lastRow.querySelector('[name="loan_amount"]').value = loan.loan_amount || '';
+                    lastRow.querySelector('[name="loan_emi"]').value = loan.emi || '';
+                });
+            }
+
+            // Step 5 - Bank Accounts
+            if (app.bank_accounts && app.bank_accounts.length > 0) {
+                app.bank_accounts.forEach(acc => {
+                    addBankAccount();
+                    const rows = document.querySelectorAll('.account-row');
+                    const lastRow = rows[rows.length - 1];
+                    lastRow.querySelector('[name="account_bank"]').value = acc.bank_name || '';
+                    lastRow.querySelector('[name="account_branch"]').value = acc.branch || '';
+                    lastRow.querySelector('[name="account_type"]').value = acc.account_type || '';
+                    lastRow.querySelector('[name="account_cc_limit"]').value = acc.cc_limit || '';
+                });
+            }
+
+            // Step 6 - Security Details
+            if (app.security_details) {
+                const sd = app.security_details;
+                document.getElementById('house_address').value = sd.house_address || '';
+                document.getElementById('house_area').value = sd.house_area || '';
+                document.getElementById('house_market_value').value = sd.house_market_value || '';
+                document.getElementById('house_ownership').value = sd.house_ownership || '';
+                if (sd.house_ownership === 'Other') toggleOtherField('house_ownership', 'other_house_owner_container');
+                document.getElementById('other_house_owner').value = sd.other_house_owner || '';
+                document.getElementById('amount_required').value = sd.amount_required || '';
+                document.getElementById('end_use').value = sd.end_use || '';
+                if (sd.end_use === 'Other') toggleOtherField('end_use', 'other_end_use_container');
+                document.getElementById('other_end_use').value = sd.other_end_use || '';
+            }
+
+            // Step 7 - Conclusion
+            if (app.conclusion) {
+                const c = app.conclusion;
+                document.getElementById('general_observation').value = c.general_observation || '';
+                document.getElementById('nearby_person1').value = c.nearby_person1 || '';
+                document.getElementById('nearby_person2').value = c.nearby_person2 || '';
+                if (c.sale_invoices) document.querySelector(`input[name="sale_invoices"][value="${c.sale_invoices}"]`)?.click();
+                if (c.purchase_invoices) document.querySelector(`input[name="purchase_invoices"][value="${c.purchase_invoices}"]`)?.click();
+                if (c.business_setup) document.querySelector(`input[name="business_setup"][value="${c.business_setup}"]`)?.click();
+                if (c.stock_pictures) document.querySelector(`input[name="stock_pictures"][value="${c.stock_pictures}"]`)?.click();
+                if (c.signboard) document.querySelector(`input[name="signboard"][value="${c.signboard}"]`)?.click();
+                if (c.biz_registration) document.querySelector(`input[name="biz_registration"][value="${c.biz_registration}"]`)?.click();
+                if (c.education_proof) document.querySelector(`input[name="education_proof"][value="${c.education_proof}"]`)?.click();
+                document.getElementById('true_caller_name').value = c.true_caller_name || '';
+                if (c.qr_availability) document.querySelector(`input[name="qr_availability"][value="${c.qr_availability}"]`)?.click();
+                if (c.signboard_contact) document.querySelector(`input[name="signboard_contact"][value="${c.signboard_contact}"]`)?.click();
+                if (c.electricity_bill) document.querySelector(`input[name="electricity_bill"][value="${c.electricity_bill}"]`)?.click();
+                if (c.rent_agreement) document.querySelector(`input[name="rent_agreement"][value="${c.rent_agreement}"]`)?.click();
+                if (c.commercial_vehicle) document.querySelector(`input[name="commercial_vehicle"][value="${c.commercial_vehicle}"]`)?.click();
+                document.getElementById('other_findings').value = c.other_findings || '';
+                if (c.overall_status) document.querySelector(`input[name="overall_status"][value="${c.overall_status}"]`)?.click();
+                document.getElementById('status_remark').value = c.status_remark || '';
+            }
+
+            // Re-initialize datepickers with values
+            initDatePickers();
+        }
+
+        // Initialize Flatpickr date pickers
+        function initDatePickers() {
+            // Allocation date picker
+            flatpickr('.datepicker', {
+                dateFormat: 'd/m/Y',
+                allowInput: true,
+                disableMobile: true
+            });
+            
+            // DOB picker with age calculation
+            flatpickr('.datepicker-dob', {
+                dateFormat: 'd/m/Y',
+                allowInput: true,
+                disableMobile: true,
+                maxDate: 'today',
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates.length > 0) {
+                        const birthDate = selectedDates[0];
+                        const today = new Date();
+                        let age = today.getFullYear() - birthDate.getFullYear();
+                        const m = today.getMonth() - birthDate.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                        if (age > 0) document.getElementById('age').value = age;
+                    }
+                }
+            });
+        }
+
+        window.onload = function() {
+            if (getToken()) {
+                showApplicationForm();
+                checkEditMode();
+            } else {
+                showLoginForm();
+            }
+            initDatePickers();
+        };
+    </script>
+</body>
+</html>

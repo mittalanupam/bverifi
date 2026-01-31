@@ -1,0 +1,7 @@
+docker-compose exec backend python manage.py createsuperuser
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f
