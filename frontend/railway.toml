@@ -1,0 +1,6 @@
+# Railway config for frontend (used when deploying with Nixpacks, not Docker)
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm run start:prod"

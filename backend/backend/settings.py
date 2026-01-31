@@ -57,16 +57,35 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'ankur_db'),
-        'USER': os.environ.get('POSTGRES_USER', 'ankur_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'ankur_password'),
-        'HOST': os.environ.get('DATABASE_HOST', 'db'),
-        'PORT': os.environ.get('DATABASE_PORT', '5432'),
+# Prefer DATABASE_URL (e.g. Railway Postgres plugin); fall back to separate env vars
+if os.environ.get('DATABASE_URL'):
+    import urllib.parse
+    db_url = os.environ['DATABASE_URL']
+    if db_url.startswith('postgres://'):
+        db_url = 'postgresql://' + db_url[11:]
+    url = urllib.parse.urlparse(db_url)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': (url.path[1:] or 'railway').split('?')[0],
+            'USER': url.username or '',
+            'PASSWORD': url.password or '',
+            'HOST': url.hostname or 'localhost',
+            'PORT': str(url.port or 5432),
+            'OPTIONS': {'sslmode': 'require'} if url.hostname else {},
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'ankur_db'),
+            'USER': os.environ.get('POSTGRES_USER', 'ankur_user'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'ankur_password'),
+            'HOST': os.environ.get('DATABASE_HOST', 'db'),
+            'PORT': os.environ.get('DATABASE_PORT', '5432'),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
