@@ -224,7 +224,7 @@ If you see **Builder: Dockerfile - Automatically Detected**, click it and select
 
 ### 6. If it still fails
 
-- **502 Bad Gateway / “Application failed to respond”**: The process is not listening on Railway’s `PORT`. Ensure Nixpacks + `npm run start:prod` (which runs `serve -s build -l $PORT`).
+- **502 Bad Gateway / “Application failed to respond” / log says “Accepting connections at http://localhost:8080”**: The app was binding to `localhost` only, so Railway’s proxy could not reach it. The frontend is now configured to bind to `0.0.0.0` (all interfaces). Redeploy after pulling the latest `Dockerfile.railway` and `package.json` (start:prod).
 - **Blank page / “Cannot GET /”**: Build may have failed or `build` is missing; check build logs.
 - **Page loads but API calls fail**: Fix backend URL and CORS (see main Troubleshooting table); use browser DevTools → Network to see failing requests.
 
