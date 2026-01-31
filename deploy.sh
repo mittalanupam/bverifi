@@ -67,3 +67,4 @@ echo "📝 To view logs, run:"
 echo "   docker-compose -f $COMPOSE_FILE logs -f"
 
 
+

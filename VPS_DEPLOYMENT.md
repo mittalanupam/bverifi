@@ -356,3 +356,4 @@ docker system prune -a
 4. Add CDN for static assets (Cloudflare - free)
 
 
+
