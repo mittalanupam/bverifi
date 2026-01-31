@@ -187,7 +187,19 @@ Railway’s public URL should **not** include `:8080` (or any port). Use:
 
 In the Railway dashboard: open your **frontend service** → **Settings** → **Networking** → **Public Networking**. Copy the **Domain** shown there (e.g. `web-production-037c.up.railway.app`) and open `https://<that-domain>/` in the browser (no `:8080`).
 
-### 2. Confirm the frontend is built with Nixpacks (not Docker)
+### 2. Fix “Accepting connections at http://localhost:8080” (app not reachable)
+
+If logs show **“Accepting connections at http://localhost:8080”** but the frontend URL does not load, the app is binding to **localhost** only. Railway’s proxy cannot reach it. Override the start command in the dashboard:
+
+1. Open the **frontend service** → **Settings** → **Deploy** (or **Build**).
+2. Find **Custom Start Command** / **Start Command** / **Override start command**.
+3. Set it to exactly: **`serve -s build -l 0.0.0.0:$PORT`**
+4. Save and **Redeploy** the frontend.
+
+After redeploy, logs should show something like **“Accepting connections at http://0.0.0.0:8080”** and the frontend URL should work.  
+*(If your repo has the latest code, `npm run start:prod` runs `start-server.sh` which does the same; the dashboard override works even when the repo hasn’t been updated.)*
+
+### 3. Confirm the frontend is built with Nixpacks (not Docker)
 
 If the frontend was deployed with **Docker** (`Dockerfile.prod`), the app listens on port **80** while Railway expects it to listen on **PORT** (e.g. 8080). That mismatch causes “not working” or odd URLs.
 
@@ -201,28 +213,28 @@ If you see **Builder: Dockerfile - Automatically Detected**, click it and select
 1. Change **Builder** to **Nixpacks** (disable Dockerfile for this service).
 2. Redeploy (e.g. **Deployments** → **Redeploy** or push a commit).
 
-### 3. Check deploy logs
+### 4. Check deploy logs
 
 - **Frontend service** → **Deployments** → open the latest deployment → **View Logs**.
 - Build should end with something like “Build completed” and then `npm run start:prod` or `serve -s build -l …`.
 - If you see “Could not connect”, “EADDRINUSE”, or errors about `build` folder, the start command or builder is wrong (see step 2).
 
-### 4. Check environment variables
+### 5. Check environment variables
 
 - **Frontend** → **Variables**: `REACT_APP_API_URL` must be your **backend** API URL, e.g. `https://<backend-service>.up.railway.app/api` (no trailing slash).
 - After changing `REACT_APP_API_URL`, **redeploy** the frontend (variable is baked in at build time).
 
-### 5. Quick checklist
+### 6. Quick checklist
 
 | Check | Where | What to verify |
 |-------|--------|----------------|
 | Public URL | Frontend → Settings → Networking | Use the domain **without** `:8080`. |
 | Builder | Frontend → Settings → Build | **Nixpacks** or **Dockerfile** with path **Dockerfile.railway**. |
 | Root Directory | Frontend → Settings | `frontend`. |
-| Start Command | Frontend → Settings → Deploy | `npm run start:prod` (or from `railway.toml`). |
+| Start Command | Frontend → Settings → Deploy | **`serve -s build -l 0.0.0.0:$PORT`** (set in dashboard if repo not updated). |
 | Logs | Frontend → Deployments → View Logs | Build + start succeed; no “address in use” or “cannot find build”. |
 
-### 6. If it still fails
+### 7. If it still fails
 
 - **502 Bad Gateway / “Application failed to respond” / log says “Accepting connections at http://localhost:8080”**: The app was binding to `localhost` only, so Railway’s proxy could not reach it. The frontend is now configured to bind to `0.0.0.0` (all interfaces). Redeploy after pulling the latest `Dockerfile.railway` and `package.json` (start:prod).
 - **Blank page / “Cannot GET /”**: Build may have failed or `build` is missing; check build logs.
